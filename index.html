@@ -52,7 +52,10 @@
     .screen{position:relative;outline:1px solid var(--line);background:#111;box-shadow:0 20px 60px rgba(13,18,28,.15);}
     .screen .blind{position:absolute;background:rgba(214,69,69,.16);border:1px dashed rgba(214,69,69,.6)}
     .screen .safe{position:absolute;background:rgba(20,164,77,.08);border:1px solid rgba(20,164,77,.6);outline:2px solid rgba(20,164,77,.25);}
-    .screen .inner{position:absolute;background:rgba(34,102,238,.06);border:1px solid rgba(34,102,238,.55);outline:2px solid rgba(34,102,238,.22)}
+    .screen .inner{position:absolute;background:rgba(34,102,238,.06);border:1px solid rgba(34,102,238,.55);outline:2px solid rgba(34,102,238,.22);display:flex;align-items:center;justify-content:center;text-align:center}
+    .screen .inner-label{pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.92);box-shadow:0 4px 18px rgba(20,36,66,.14);color:rgba(34,102,238,.95);font-weight:600;line-height:1.2}
+    .screen .inner-label__px{letter-spacing:.01em}
+    .screen .inner-label__percent{font-size:.85em;font-weight:500;color:rgba(34,102,238,.9)}
 
     .rotate-btn{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(14,17,22,.78);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 8px 20px rgba(13,18,28,.16);transition:background .2s ease,transform .2s ease}
     .rotate-btn:hover{background:rgba(34,102,238,.88)}
@@ -470,12 +473,50 @@
           height:Math.round((safe.B - safe.T) * scale) + 'px'
         });
 
-        createLayer('inner', {
+        const innerLayer = createLayer('inner', {
           left:Math.round(inner.L * scale) + 'px',
           top:Math.round(inner.T * scale) + 'px',
           width:Math.round((inner.R - inner.L) * scale) + 'px',
           height:Math.round((inner.B - inner.T) * scale) + 'px'
         });
+
+        this.renderInnerLabel(innerLayer, ctx, scale);
+      }
+
+      renderInnerLabel(layer, ctx, scale){
+        if(!layer){
+          return;
+        }
+
+        const innerWidthPx = Math.max(0, Math.round(ctx.inner.R - ctx.inner.L));
+        const innerHeightPx = Math.max(0, Math.round(ctx.inner.B - ctx.inner.T));
+        if(innerWidthPx === 0 || innerHeightPx === 0){
+          return;
+        }
+
+        const label = document.createElement('div');
+        label.className = 'inner-label';
+        label.style.fontSize = Math.max(10, Math.min(20, Math.round(14 * scale))) + 'px';
+
+        const pxLine = document.createElement('div');
+        pxLine.className = 'inner-label__px';
+        pxLine.textContent = `${innerWidthPx} × ${innerHeightPx} px`;
+
+        const percentLine = document.createElement('div');
+        percentLine.className = 'inner-label__percent';
+        const widthPercent = this.formatPercent(ctx.W ? (innerWidthPx / ctx.W) * 100 : 0);
+        const heightPercent = this.formatPercent(ctx.H ? (innerHeightPx / ctx.H) * 100 : 0);
+        percentLine.textContent = `${widthPercent} × ${heightPercent}`;
+
+        label.append(pxLine, percentLine);
+        layer.appendChild(label);
+      }
+
+      formatPercent(value){
+        if(!Number.isFinite(value)){
+          return '0.0%';
+        }
+        return `${value.toFixed(1)}%`;
       }
     }
 
