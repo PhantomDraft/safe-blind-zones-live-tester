@@ -3,7 +3,7 @@
 <details open>
 <summary>Опис (українською)</summary>
 
-Веб-застосунок наочно показує safe/blind зони для мобільних інтерфейсів і побудований за принципами Hexagonal Architecture, тож доменна логіка ізольована від інтерфейсу.
+Веб-застосунок наочно показує safe/blind зони для мобільних інтерфейсів.
 
 #### Базові функції
 - Миттєво перераховує габарити безпечних, сліпих та внутрішніх зон залежно від параметрів екрана.
@@ -16,7 +16,7 @@
 <details>
 <summary>Description (English)</summary>
 
-The web app visualizes safe/blind zones for mobile interfaces and follows Hexagonal Architecture so that domain logic stays decoupled from the UI.
+The web app visualizes safe/blind zones for mobile interfaces.
 
 #### Core features
 - Instantly recalculates safe, blind, and inner zone sizes based on screen parameters.
