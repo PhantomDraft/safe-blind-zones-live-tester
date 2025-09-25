@@ -3,782 +3,190 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Safe / Blind Zones — Live Tester</title>
-  <style>
-    /* ===== Світла тема ===== */
-    :root{
-      --bg:#ffffff;
-      --panel:#f6f7f9;
-      --ink:#0e1116;
-      --muted:#5b6778;
-      --accent:#2266ee;
-      --ok:#14a44d;
-      --warn:#e59f18;
-      --danger:#d64545;
-      --line:#e3e7ee;
-      --panel-line:#d9dee7;
-      --ink-weak:#243247;
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
-    h1,h2{margin:.2rem 0 .6rem}
-    a{color:var(--accent)}
-
-    /* Стильні скроллбари */
-    *::-webkit-scrollbar{height:10px;width:10px}
-    *::-webkit-scrollbar-track{background:transparent}
-    *::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#cfd8eb,#bfc9df);border:2px solid transparent;background-clip:content-box;border-radius:10px}
-    *::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#bbc7e6,#aab8db);border:2px solid transparent;background-clip:content-box}
-    *{scrollbar-color:#c4cfe6 transparent;scrollbar-width:thin}
-
-    .wrap{display:grid;grid-template-columns:420px 1fr;gap:16px;padding:16px}
-    .card{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:14px}
-    label{display:block;margin:.4rem 0 .15rem;color:var(--muted)}
-    input,select{width:100%;padding:.55rem .65rem;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink)}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .btn{display:inline-block;background:var(--accent);color:#fff;border:0;padding:.6rem .85rem;border-radius:10px;font-weight:600;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.06)}
-    .btn.secondary{background:#e9edf6;color:var(--ink);border:1px solid var(--line)}
-    .muted{color:var(--muted)}
-    .section-title{margin:1.2rem 0 .6rem;font-size:16px;color:var(--ink-weak);font-weight:600}
-
-    .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-    .kpi .b{background:#ffffff;border:1px solid var(--line);border-radius:10px;padding:10px}
-    .kpi .b strong{display:block;font-size:18px}
-
-    /* Прев’ю */
-    .preview-wrap{position:relative;display:flex;align-items:center;justify-content:center;height:70vh;min-height:420px;background:#fff;border:1px dashed var(--line);border-radius:14px}
-    .screen{position:relative;outline:1px solid var(--line);background:#111;box-shadow:0 20px 60px rgba(13,18,28,.15);}
-    .screen .blind{position:absolute;background:rgba(214,69,69,.16);border:1px dashed rgba(214,69,69,.6)}
-    .screen .safe{position:absolute;background:rgba(20,164,77,.08);border:1px solid rgba(20,164,77,.6);outline:2px solid rgba(20,164,77,.25);}
-    .screen .inner{position:absolute;background:rgba(34,102,238,.06);border:1px solid rgba(34,102,238,.55);outline:2px solid rgba(34,102,238,.22);display:flex;align-items:center;justify-content:center;text-align:center}
-    .screen .inner-label{pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.92);box-shadow:0 4px 18px rgba(20,36,66,.14);color:rgba(34,102,238,.95);font-weight:600;line-height:1.2}
-    .screen .inner-label__px{letter-spacing:.01em}
-    .screen .inner-label__percent{font-size:.85em;font-weight:500;color:rgba(34,102,238,.9)}
-
-    .rotate-btn{position:absolute;top:16px;left:16px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(14,17,22,.78);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 8px 20px rgba(13,18,28,.16);transition:background .2s ease,transform .2s ease}
-    .rotate-btn:hover{background:rgba(34,102,238,.88)}
-    .rotate-btn:active{transform:scale(.96)}
-    .rotate-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-    .rotate-btn span{display:inline-block;transition:transform .2s ease}
-    .rotate-btn[data-state="landscape"] span{transform:rotate(90deg)}
-
-    .bg-actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-
-    /* Таблиці: фіксована мінімальна ширина + горизонтальний скролл */
-    .scroller{overflow:auto}
-    table{width:100%;border-collapse:collapse;margin-top:10px;min-width:1100px}
-    th,td{border-bottom:1px solid var(--line);padding:.6rem .5rem;text-align:left;white-space:nowrap}
-    th{color:var(--ink-weak);font-weight:700;background:#f1f4fa;position:sticky;top:0}
-    tbody tr:hover{background:#f7f9ff}
-    .mono{font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace}
-
-    .note{font-size:12px;color:var(--muted)}
-    .pill{display:inline-block;padding:.15rem .5rem;border-radius:999px;background:#eef2fb;border:1px solid var(--line);color:var(--muted);font-size:12px}
-
-    /* Плашка-резюме з правилами */
-    .rules{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
-    .rules li{margin:.25rem 0}
-
-    /* JS‑тултип (окремий елемент у body, щоб не обрізався контейнерами) */
-    #tooltip{position:fixed;left:0;top:0;transform:translate(-9999px,-9999px);max-width:420px;background:#0e1116;color:#fff;padding:.55rem .65rem;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.22);z-index:100000;pointer-events:none;font-size:13px}
-    #tooltip[data-show="1"]{transform:none}
-    #tooltip .arrow{position:absolute;width:0;height:0;border:6px solid transparent;border-top-color:#0e1116}
-
-    /* Маркери підказок у таблицях/лейблах */
-    .t{cursor:help;border-bottom:1px dotted #9aa7be}
-    .t:empty{border:0;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:6px;border-radius:50%;background:#eef2fb;color:var(--accent);font-weight:600;font-size:12px}
-    .t:empty::before{content:'?'}
-
-    .preset-link{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:none}
-    .preset-link::after{content:'↻';font-size:12px;color:var(--muted)}
-    .preset-link:hover{color:#124fd6}
-  </style>
+  <title data-i18n="app.title">Safe / Blind Zones — Live Tester</title>
+  <link rel="stylesheet" href="styles/app.css" />
 </head>
-<body>
-  <div class="wrap">
-    <!-- Панель керування + текстові правила -->
-    <section class="card">
-      <h1>Safe / Blind Zones — Live Tester</h1>
 
-      <p class="muted">Супер-коротко <span class="t" data-tip="Художники малюють фон на весь екран. У сліпих зонах (10% зверху, 12% знизу, 5% збоку) — тільки декор. Усе клікабельне й критично важливе — всередині safe‑zone та ще з додатковим запасом 2–3% від країв safe‑zone. Так ми гарантуємо, що на жодному пристрої елементи не обріжуться та не підуть під жести/чолку.">[детальніше]</span>: <b>10% зверху</b>, <b>12% знизу</b>, <b>5% зліва/справа</b> — це "сліпі зони". Усе клікабельне й текст — <b>тільки в межах safe‑zone</b>. Додатковий запас (всередині safe‑zone) — <b>2–3%</b>.</p>
-
-      <h2 class="section-title">Налаштування екрана</h2>
-
-      <div class="row">
-        <div>
-          <label>Ширина, px</label>
-          <input id="w" type="number" value="1080" min="240" step="1" />
-        </div>
-        <div>
-          <label>Висота, px</label>
-          <input id="h" type="number" value="2400" min="240" step="1" />
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>Платформа</label>
-          <select id="platform">
-            <option value="android" selected>Android (dp → px через dpi)</option>
-            <option value="ios">iOS (pt → px через scale)</option>
+<body class="sbz-app">
+  <div class="sbz-app__layout">
+    <section class="sbz-card sbz-card--controls">
+      <header class="sbz-card__header">
+        <h1 class="sbz-heading" data-i18n="app.title">Safe / Blind Zones — Live Tester</h1>
+        <div class="sbz-language">
+          <label class="sbz-language__label" for="language" data-i18n="form.languageLabel">Мова</label>
+          <select id="language" class="sbz-select sbz-language__select">
+            <option value="uk" data-i18n="form.languageUk">Українська</option>
+            <option value="en" data-i18n="form.languageEn">English</option>
           </select>
         </div>
-        <div id="androidBox">
-          <label>Щільність (DPI) <span class="t" data-tip="mdpi=160, hdpi=240, xhdpi=320, xxhdpi=480, xxxhdpi=640"></span></label>
-          <input id="dpi" type="number" value="480" min="120" step="1" />
-        </div>
-        <div id="iosBox" style="display:none">
-          <label>Scale <span class="t" data-tip="@2x=2, @3x=3 (px = pt × scale)"></span></label>
-          <input id="scale" type="number" value="3" min="1" step="0.5" />
-        </div>
-      </div>
+      </header>
 
-      <div class="row">
-        <div>
-          <label>Верхня "сліпа зона", % H</label>
-          <input id="pTop" type="number" value="10" min="0" step="0.5" />
-        </div>
-        <div>
-          <label>Нижня "сліпа зона", % H</label>
-          <input id="pBottom" type="number" value="12" min="0" step="0.5" />
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Бокові "сліпі зони", % W</label>
-          <input id="pSide" type="number" value="5" min="0" step="0.5" />
-        </div>
-        <div></div>
-      </div>
+      <p class="sbz-text sbz-text--muted" data-i18n="description.short">
+        Супер-коротко: 10% зверху, 12% знизу, 5% зліва/справа — це "сліпі зони". Усе клікабельне й текст — тільки в межах safe‑zone. Додатковий запас (всередині safe‑zone) — 2–3%.
+      </p>
 
-      <div class="row">
-        <div>
-          <label>Внутрішній запас (верхи/низи), % H <span class="t" data-tip="Додатковий запас всередині safe‑zone. Рекомендуємо 2–3% від висоти екрану."></span></label>
-          <input id="mTopBottom" type="number" value="2" min="0" step="0.5" />
+      <section class="sbz-section">
+        <h2 class="sbz-section__title" data-i18n="form.screenTitle">Налаштування екрана</h2>
+        <div class="sbz-form__row">
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="width" data-i18n="form.width">Ширина, px</label>
+            <input id="width" class="sbz-input" type="number" value="1080" min="240" step="1" />
+          </div>
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="height" data-i18n="form.height">Висота, px</label>
+            <input id="height" class="sbz-input" type="number" value="2400" min="240" step="1" />
+          </div>
         </div>
-        <div>
-          <label>Внутрішній запас (боки), % W <span class="t" data-tip="Додатковий запас всередині safe‑zone. Рекомендуємо 2–3% від ширини екрану."></span></label>
-          <input id="mSides" type="number" value="2" min="0" step="0.5" />
+        <div class="sbz-form__row">
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="platform" data-i18n="form.platform">Платформа</label>
+            <select id="platform" class="sbz-select">
+              <option value="android" data-i18n="form.platformAndroid" selected>Android (dp → px через dpi)</option>
+              <option value="ios" data-i18n="form.platformIos">iOS (pt → px через scale)</option>
+            </select>
+          </div>
+          <div id="androidBox" class="sbz-form__group sbz-form__group--android">
+            <label class="sbz-label" for="dpi" data-i18n="form.dpi">Щільність (DPI)</label>
+            <input id="dpi" class="sbz-input" type="number" value="480" min="120" step="1" />
+            <span class="sbz-tooltip__trigger" data-i18n-tip="form.dpiHint"></span>
+          </div>
+          <div id="iosBox" class="sbz-form__group sbz-form__group--ios sbz-form__group--hidden">
+            <label class="sbz-label" for="scale" data-i18n="form.scale">Scale</label>
+            <input id="scale" class="sbz-input" type="number" value="3" min="1" step="0.5" />
+            <span class="sbz-tooltip__trigger" data-i18n-tip="form.scaleHint"></span>
+          </div>
         </div>
-      </div>
+        <div class="sbz-form__row">
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="percentTop" data-i18n="form.percentTop">Верхня "сліпа зона", % H</label>
+            <input id="percentTop" class="sbz-input" type="number" value="10" min="0" step="0.5" />
+          </div>
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="percentBottom" data-i18n="form.percentBottom">Нижня "сліпа зона", % H</label>
+            <input id="percentBottom" class="sbz-input" type="number" value="12" min="0" step="0.5" />
+          </div>
+        </div>
+        <div class="sbz-form__row">
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="percentSide" data-i18n="form.percentSide">Бокові "сліпі зони", % W</label>
+            <input id="percentSide" class="sbz-input" type="number" value="5" min="0" step="0.5" />
+          </div>
+          <div class="sbz-form__group"></div>
+        </div>
+        <div class="sbz-form__row">
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="marginTopBottom" data-i18n="form.marginTopBottom">Внутрішній запас (верхи/низи), % H</label>
+            <input id="marginTopBottom" class="sbz-input" type="number" value="2" min="0" step="0.5" />
+            <span class="sbz-tooltip__trigger" data-i18n-tip="form.marginTopBottomHint"></span>
+          </div>
+          <div class="sbz-form__group">
+            <label class="sbz-label" for="marginSides" data-i18n="form.marginSides">Внутрішній запас (боки), % W</label>
+            <input id="marginSides" class="sbz-input" type="number" value="2" min="0" step="0.5" />
+            <span class="sbz-tooltip__trigger" data-i18n-tip="form.marginSidesHint"></span>
+          </div>
+        </div>
+      </section>
 
-      <h2 class="section-title">Прев’ю фону</h2>
-      <div>
-        <label for="bgImage">Фонове зображення</label>
-        <input id="bgImage" type="file" accept="image/*" />
-      </div>
-      <div>
-        <label for="bgMode">Режим заповнення</label>
-        <select id="bgMode">
-          <option value="cover" selected>Cover (обрізати краї)</option>
-          <option value="contain">Contain (показати повністю)</option>
-          <option value="stretch">Розтягнути (100%×100%)</option>
-          <option value="fit-width">За шириною (100%×auto)</option>
-          <option value="fit-height">За висотою (auto×100%)</option>
-          <option value="actual">Оригінальний розмір</option>
-        </select>
-      </div>
-      <div class="bg-actions">
-        <button class="btn secondary" type="button" id="clearBg">Очистити фон</button>
-      </div>
+      <section class="sbz-section">
+        <h2 class="sbz-section__title" data-i18n="form.previewTitle">Прев’ю фону</h2>
+        <div class="sbz-form__group">
+          <label class="sbz-label" for="backgroundImage" data-i18n="form.backgroundImage">Фонове зображення</label>
+          <input id="backgroundImage" class="sbz-input" type="file" accept="image/*" />
+        </div>
+        <div class="sbz-form__group">
+          <label class="sbz-label" for="backgroundMode" data-i18n="form.backgroundMode">Режим заповнення</label>
+          <select id="backgroundMode" class="sbz-select">
+            <option value="cover" data-i18n="form.modeCover" selected>Cover (обрізати краї)</option>
+            <option value="contain" data-i18n="form.modeContain">Contain (показати повністю)</option>
+            <option value="stretch" data-i18n="form.modeStretch">Розтягнути (100%×100%)</option>
+            <option value="fit-width" data-i18n="form.modeFitWidth">За шириною (100%×auto)</option>
+            <option value="fit-height" data-i18n="form.modeFitHeight">За висотою (auto×100%)</option>
+            <option value="actual" data-i18n="form.modeActual">Оригінальний розмір</option>
+          </select>
+        </div>
+        <div class="sbz-background__actions">
+          <button type="button" id="clearBackground" class="sbz-button sbz-button--secondary" data-i18n="form.clearBackground">Очистити фон</button>
+        </div>
+      </section>
 
-      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-        <button class="btn" id="apply">Застосувати</button>
-        <button class="btn secondary" id="presetPhone">Пресет: 1080×2400 xxhdpi</button>
-        <button class="btn secondary" id="presetPad">Пресет: 2560×1600 xhdpi</button>
-      </div>
-
-      <div class="kpi">
-        <div class="b"><span class="pill">Top</span><strong id="kTop">–</strong><span class="note">px</span></div>
-        <div class="b"><span class="pill">Bottom</span><strong id="kBottom">–</strong><span class="note">px</span></div>
-        <div class="b"><span class="pill">Side</span><strong id="kSide">–</strong><span class="note">px</span></div>
-        <div class="b"><span class="pill">Мін. ціль</span><strong id="kTarget">–</strong><span class="note">px</span></div>
-      </div>
-
-      <p><a href="https://github.com/PhantomDraft" target=_blank">/c PD</a></p>
+      <section class="sbz-section sbz-section--actions">
+        <div class="sbz-actions">
+          <button class="sbz-button sbz-button--secondary" id="presetPhone" data-i18n="presets.phone">Пресет: 1080×2400 xxhdpi</button>
+          <button class="sbz-button sbz-button--secondary" id="presetPad" data-i18n="presets.pad">Пресет: 2560×1600 xhdpi</button>
+        </div>
+      </section>
     </section>
 
-    <!-- Прев’ю + таблиці → горизонтальний скролл при потребі -->
-    <section class="card">
-      <div class="preview-wrap">
-        <button type="button" class="rotate-btn" id="rotatePreview" aria-label="Перемкнути орієнтацію прев’ю" title="Перемкнути орієнтацію прев’ю"><span>⟳</span></button>
-        <div id="screen" class="screen" aria-label="preview"></div>
+    <section class="sbz-card sbz-card--preview">
+      <div class="sbz-preview">
+        <div class="sbz-preview__actions">
+          <button type="button" class="sbz-preview__action sbz-preview__action--rotate" id="rotatePreview" aria-label="Перемкнути орієнтацію прев’ю" data-i18n-aria-label="preview.rotate" title="Перемкнути орієнтацію прев’ю" data-i18n-title="preview.rotate"><span>⟳</span></button>
+          <button type="button" class="sbz-preview__action sbz-preview__action--add-block" id="addBlock" aria-label="Додати блок у safe-зону" data-i18n-aria-label="preview.addBlock" title="Додати блок у safe-зону" data-i18n-title="preview.addBlock"><span>+</span></button>
+          <button
+            type="button"
+            class="sbz-preview__action sbz-preview__action--toggle-data"
+            id="toggleData"
+            aria-pressed="false"
+            aria-label="Сховати дані"
+            data-i18n-aria-label="preview.toggleData.hide"
+            title="Сховати дані"
+            data-i18n-title="preview.toggleData.hide"
+          >
+            <span>👁</span>
+          </button>
+          <button type="button" class="sbz-preview__action sbz-preview__action--export" id="exportPreview" aria-label="Експортувати прев’ю в PNG" data-i18n-aria-label="preview.export" title="Експортувати прев’ю в PNG" data-i18n-title="preview.export"><span>⤓</span></button>
+        </div>
+        <div id="screen" class="sbz-preview__screen" aria-label="preview"></div>
       </div>
-
-      <h2>Розрахунки (поточний екран)</h2>
-      <div class="scroller">
-        <table class="mono" id="calcTable">
+      <div class="sbz-table">
+        <table class="sbz-table__inner sbz-table__inner--mono" id="calcTable">
           <thead>
             <tr>
-              <th><span class="t" data-tip="Фактична роздільна здатність: ширина×висота у пікселях.">W×H</span></th>
-              <th><span class="t" data-tip="Верхня сліпа зона: % від висоти → пікселі.">Top</span></th>
-              <th><span class="t" data-tip="Нижня сліпа зона: % від висоти → пікселі.">Bottom</span></th>
-              <th><span class="t" data-tip="Бокова сліпа зона: % від ширини → пікселі.">Side</span></th>
-              <th><span class="t" data-tip="Границі безпечної області: Left, Top, Right, Bottom.">Safe (L,T,R,B)</span></th>
-              <th><span class="t" data-tip="Мінімальна зона натискання (Android: 48dp → px = dp×dpi/160; iOS: 44pt → px = pt×scale).">Touch Target</span></th>
-              <th><span class="t" data-tip="Рекомендований інтервал між елементами: Android 8dp / iOS 8pt (переведені в px).">Gap (8dp/pt)</span></th>
-              <th><span class="t" data-tip="Внутрішній запас від країв safe‑zone (верх/низ). Значення вказані у % від висоти.">Inner Top/Bottom</span></th>
-              <th><span class="t" data-tip="Внутрішній запас від країв safe‑zone (ліворуч/праворуч). Значення у % від ширини.">Inner Sides</span></th>
-              <th><span class="t" data-tip="Координати внутрішньої зони з урахуванням додаткового запасу.">Inner (L,T,R,B)</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.wh.label" data-i18n-tip="table.calc.wh.tip">W×H</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.top.label" data-i18n-tip="table.calc.top.tip">Top</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.bottom.label" data-i18n-tip="table.calc.bottom.tip">Bottom</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.side.label" data-i18n-tip="table.calc.side.tip">Side</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.safe.label" data-i18n-tip="table.calc.safe.tip">Safe (L,T,R,B)</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.target.label" data-i18n-tip="table.calc.target.tip">Touch Target</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.gap.label" data-i18n-tip="table.calc.gap.tip">Gap (8dp/pt)</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.innerTopBottom.label" data-i18n-tip="table.calc.innerTopBottom.tip">Inner Top/Bottom</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.innerSides.label" data-i18n-tip="table.calc.innerSides.tip">Inner Sides</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.calc.inner.label" data-i18n-tip="table.calc.inner.tip">Inner (L,T,R,B)</span></th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
-
-      <h2>Популярні пресети (таблиця)</h2>
-      <div class="scroller">
-        <table class="mono" id="presetTable">
+      <div class="sbz-table">
+        <table class="sbz-table__inner sbz-table__inner--mono" id="presetTable">
           <thead>
             <tr>
-              <th><span class="t" data-tip="Коротке ім’я набору параметрів пристрою.">Пресет</span></th>
-              <th><span class="t" data-tip="Базова роздільна здатність артборду.">W×H</span></th>
-              <th><span class="t" data-tip="Цільова платформа.">Платформа</span></th>
-              <th><span class="t" data-tip="Android: dpi; iOS: @2x/@3x.">DPI/Scale</span></th>
-              <th><span class="t" data-tip="Top blind у пікселях.">Top</span></th>
-              <th><span class="t" data-tip="Bottom blind у пікселях.">Bottom</span></th>
-              <th><span class="t" data-tip="Side blind у пікселях.">Side</span></th>
-              <th><span class="t" data-tip="Границі safe‑zone.">Safe (L,T,R,B)</span></th>
-              <th><span class="t" data-tip="Мінімальна зона натискання в px.">Touch Target</span></th>
-              <th><span class="t" data-tip="Інтервал між елементами в px.">Gap</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.name.label" data-i18n-tip="table.presets.name.tip">Пресет</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.wh.label" data-i18n-tip="table.presets.wh.tip">W×H</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.platform.label" data-i18n-tip="table.presets.platform.tip">Платформа</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.dpi.label" data-i18n-tip="table.presets.dpi.tip">DPI/Scale</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.top.label" data-i18n-tip="table.presets.top.tip">Top</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.bottom.label" data-i18n-tip="table.presets.bottom.tip">Bottom</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.side.label" data-i18n-tip="table.presets.side.tip">Side</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.safe.label" data-i18n-tip="table.presets.safe.tip">Safe (L,T,R,B)</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.target.label" data-i18n-tip="table.presets.target.tip">Touch Target</span></th>
+              <th><span class="sbz-tooltip__trigger" data-i18n="table.presets.gap.label" data-i18n-tip="table.presets.gap.tip">Gap</span></th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
-      <p class="note">Правило універсальне: відсотки "сліпих зон" однакові для всіх артбордів; мінімальні розміри натискань переводимо в пікселі через dpi (Android) або scale (iOS). Додатковий внутрішній запас (2–3%) гарантує, що важливе не обріжеться на різних пропорціях екранів.</p>
+      <p class="sbz-note" data-i18n="note.general">
+        Правило універсальне: відсотки "сліпих зон" однакові для всіх артбордів; мінімальні розміри натискань переводимо в пікселі через dpi (Android) або scale (iOS). Додатковий внутрішній запас (2–3%) гарантує, що важливе не обріжеться на різних пропорціях екранів.
+      </p>
     </section>
   </div>
 
-  <!-- Один глобальний тултип, щоб не обрізався контейнерами  -->
-  <div id="tooltip"><div class="arrow"></div><div class="content"></div></div>
+  <div id="sbz-tooltip" class="sbz-tooltip">
+    <div class="sbz-tooltip__arrow"></div>
+    <div class="sbz-tooltip__content"></div>
+  </div>
 
-  <script>
-    class SafeBlindZonesCalculator {
-      pxTarget(platform, dpi, scale){
-        if(platform === 'android'){
-          return Math.round(48 * (dpi / 160));
-        }
-        return Math.round(44 * scale);
-      }
-
-      pxGap(platform, dpi, scale){
-        if(platform === 'android'){
-          return Math.round(8 * (dpi / 160));
-        }
-        return Math.round(8 * scale);
-      }
-
-      calc({W, H, pTop, pBottom, pSide, mTopBottom, mSides, platform, dpi, scale}){
-        const top = Math.ceil((pTop / 100) * H);
-        const bottom = Math.ceil((pBottom / 100) * H);
-        const side = Math.ceil((pSide / 100) * W);
-        const safe = {L: side, T: top, R: W - side, B: H - bottom};
-
-        const iTop = Math.ceil((mTopBottom / 100) * H);
-        const iBottom = Math.ceil((mTopBottom / 100) * H);
-        const iSide = Math.ceil((mSides / 100) * W);
-        const inner = {
-          L: safe.L + iSide,
-          T: safe.T + iTop,
-          R: safe.R - iSide,
-          B: safe.B - iBottom
-        };
-
-        const target = this.pxTarget(platform, dpi, scale);
-        const gap = this.pxGap(platform, dpi, scale);
-
-        return {W, H, top, bottom, side, safe, inner, target, gap, iTop, iBottom, iSide, platform, dpi, scale};
-      }
-    }
-
-    class Tooltip {
-      constructor(element){
-        this.element = element;
-        this.arrow = element.querySelector('.arrow');
-        this.content = element.querySelector('.content');
-        this.visible = false;
-        this.boundMouseOver = this.handleMouseOver.bind(this);
-        this.boundMouseMove = this.handleMouseMove.bind(this);
-        this.boundMouseOut = this.handleMouseOut.bind(this);
-      }
-
-      bind(target = document){
-        this.target = target;
-        target.addEventListener('mouseover', this.boundMouseOver);
-        target.addEventListener('mousemove', this.boundMouseMove);
-        target.addEventListener('mouseout', this.boundMouseOut);
-      }
-
-      show(text, x, y){
-        this.content.textContent = text;
-        this.element.setAttribute('data-show', '1');
-        this.element.style.transform = 'none';
-        this.visible = true;
-        this.position(x, y);
-      }
-
-      hide(){
-        this.element.removeAttribute('data-show');
-        this.element.style.transform = 'translate(-9999px,-9999px)';
-        this.visible = false;
-      }
-
-      position(x, y){
-        const margin = 12;
-        const rect = this.element.getBoundingClientRect();
-        let left = x;
-        let top = y - rect.height - 10;
-        if(top < margin){
-          top = y + 16;
-        }
-        if(left + rect.width + margin > window.innerWidth){
-          left = window.innerWidth - rect.width - margin;
-        }
-        if(left < margin){
-          left = margin;
-        }
-        this.element.style.left = left + 'px';
-        this.element.style.top = top + 'px';
-        this.arrow.style.left = Math.min(Math.max(16, x - left), rect.width - 16) + 'px';
-        this.arrow.style.top = (top < y ? rect.height - 2 : -12) + 'px';
-        this.arrow.style.transform = (top < y ? 'rotate(180deg)' : 'rotate(0deg)');
-      }
-
-      handleMouseOver(event){
-        const trigger = event.target.closest('.t');
-        if(trigger && trigger.dataset.tip){
-          this.show(trigger.dataset.tip, event.clientX, event.clientY);
-        }
-      }
-
-      handleMouseMove(event){
-        if(this.visible){
-          this.position(event.clientX, event.clientY);
-        }
-      }
-
-      handleMouseOut(event){
-        if(!this.visible){
-          return;
-        }
-        if(!event.relatedTarget || !event.relatedTarget.closest('.t')){
-          this.hide();
-        }
-      }
-    }
-
-    class PreviewBackground {
-      constructor(element){
-        this.element = element;
-        this.mode = PreviewBackground.DEFAULT_MODE;
-        this.imageUrl = '';
-        this.apply();
-      }
-
-      setImage(dataUrl){
-        this.imageUrl = dataUrl || '';
-        this.apply();
-      }
-
-      clear(){
-        this.setImage('');
-      }
-
-      setMode(mode){
-        this.mode = PreviewBackground.MODE_TO_SIZE[mode] ? mode : PreviewBackground.DEFAULT_MODE;
-        this.apply();
-      }
-
-      apply(){
-        if(this.imageUrl){
-          this.element.style.backgroundImage = `url(${this.imageUrl})`;
-        } else {
-          this.element.style.backgroundImage = 'none';
-        }
-        this.element.style.backgroundRepeat = 'no-repeat';
-        this.element.style.backgroundPosition = 'center center';
-        const size = PreviewBackground.MODE_TO_SIZE[this.mode] || PreviewBackground.MODE_TO_SIZE[PreviewBackground.DEFAULT_MODE];
-        this.element.style.backgroundSize = size;
-      }
-    }
-
-    PreviewBackground.DEFAULT_MODE = 'cover';
-    PreviewBackground.MODE_TO_SIZE = {
-      cover: 'cover',
-      contain: 'contain',
-      stretch: '100% 100%',
-      'fit-width': '100% auto',
-      'fit-height': 'auto 100%',
-      actual: 'auto'
-    };
-
-    class PreviewRenderer {
-      constructor(element){
-        this.element = element;
-      }
-
-      render(ctx){
-        const {W, H, top, bottom, side, safe, inner, orientation} = ctx;
-        if(!W || !H){
-          this.element.innerHTML = '';
-          this.element.style.width = '0';
-          this.element.style.height = '0';
-          return;
-        }
-
-        const containerRect = this.element.parentElement.getBoundingClientRect();
-        const maxW = Math.max(40, containerRect.width - 40);
-        const maxH = Math.max(40, containerRect.height - 40);
-        const ratioW = maxW / W;
-        const ratioH = maxH / H;
-        const scaleCandidate = Math.min(ratioW, ratioH);
-        const scale = Number.isFinite(scaleCandidate) && scaleCandidate > 0 ? scaleCandidate : 1;
-        const scaledWidth = Math.max(1, Math.round(W * scale));
-        const scaledHeight = Math.max(1, Math.round(H * scale));
-
-        this.element.style.width = scaledWidth + 'px';
-        this.element.style.height = scaledHeight + 'px';
-        if(orientation){
-          this.element.setAttribute('data-orientation', orientation);
-        }
-        this.element.innerHTML = '';
-
-        const createLayer = (cls, style) => {
-          const layer = document.createElement('div');
-          layer.className = cls;
-          Object.assign(layer.style, style);
-          this.element.appendChild(layer);
-          return layer;
-        };
-
-        createLayer('blind', {left:0, top:0, width:scaledWidth + 'px', height:Math.round(top * scale) + 'px'});
-        createLayer('blind', {left:0, top:(scaledHeight - Math.round(bottom * scale)) + 'px', width:scaledWidth + 'px', height:Math.round(bottom * scale) + 'px'});
-        createLayer('blind', {left:0, top:0, width:Math.round(side * scale) + 'px', height:scaledHeight + 'px'});
-        createLayer('blind', {left:(scaledWidth - Math.round(side * scale)) + 'px', top:0, width:Math.round(side * scale) + 'px', height:scaledHeight + 'px'});
-
-        createLayer('safe', {
-          left:Math.round(safe.L * scale) + 'px',
-          top:Math.round(safe.T * scale) + 'px',
-          width:Math.round((safe.R - safe.L) * scale) + 'px',
-          height:Math.round((safe.B - safe.T) * scale) + 'px'
-        });
-
-        const innerLayer = createLayer('inner', {
-          left:Math.round(inner.L * scale) + 'px',
-          top:Math.round(inner.T * scale) + 'px',
-          width:Math.round((inner.R - inner.L) * scale) + 'px',
-          height:Math.round((inner.B - inner.T) * scale) + 'px'
-        });
-
-        this.renderInnerLabel(innerLayer, ctx, scale);
-      }
-
-      renderInnerLabel(layer, ctx, scale){
-        if(!layer){
-          return;
-        }
-
-        const innerWidthPx = Math.max(0, Math.round(ctx.inner.R - ctx.inner.L));
-        const innerHeightPx = Math.max(0, Math.round(ctx.inner.B - ctx.inner.T));
-        if(innerWidthPx === 0 || innerHeightPx === 0){
-          return;
-        }
-
-        const label = document.createElement('div');
-        label.className = 'inner-label';
-        label.style.fontSize = Math.max(10, Math.min(20, Math.round(14 * scale))) + 'px';
-
-        const pxLine = document.createElement('div');
-        pxLine.className = 'inner-label__px';
-        pxLine.textContent = `${innerWidthPx} × ${innerHeightPx} px`;
-
-        const percentLine = document.createElement('div');
-        percentLine.className = 'inner-label__percent';
-        const widthPercent = this.formatPercent(ctx.W ? (innerWidthPx / ctx.W) * 100 : 0);
-        const heightPercent = this.formatPercent(ctx.H ? (innerHeightPx / ctx.H) * 100 : 0);
-        percentLine.textContent = `${widthPercent} × ${heightPercent}`;
-
-        label.append(pxLine, percentLine);
-        layer.appendChild(label);
-      }
-
-      formatPercent(value){
-        if(!Number.isFinite(value)){
-          return '0.0%';
-        }
-        return `${value.toFixed(1)}%`;
-      }
-    }
-
-    class SafeBlindZonesApp extends SafeBlindZonesCalculator {
-      constructor(els){
-        super();
-        this.els = els;
-        this.tooltip = new Tooltip(els.tooltip);
-        this.previewRenderer = new PreviewRenderer(els.screen);
-        this.previewBackground = new PreviewBackground(els.screen);
-        this.orientation = 'portrait';
-        this.tooltip.bind(document);
-        if(this.els.bgMode){
-          this.previewBackground.setMode(this.els.bgMode.value || PreviewBackground.DEFAULT_MODE);
-        }
-        this.updateOrientationControl();
-        this.bindEvents();
-        this.renderPresetTable();
-        this.handlePlatformChange();
-        this.update();
-      }
-
-      bindEvents(){
-        this.els.apply.addEventListener('click', () => this.update());
-        ['w','h','dpi','scale','pTop','pBottom','pSide','mTopBottom','mSides'].forEach(id => {
-          const field = this.els[id];
-          if(field){
-            field.addEventListener('input', () => this.update());
-          }
-        });
-        this.els.platform.addEventListener('change', () => {
-          this.handlePlatformChange();
-          this.update();
-        });
-        this.els.presetPhone.addEventListener('click', () => this.applyPresetById('phone-default'));
-        this.els.presetPad.addEventListener('click', () => this.applyPresetById('tablet-default'));
-        if(this.els.rotatePreview){
-          this.els.rotatePreview.addEventListener('click', () => this.toggleOrientation());
-        }
-        if(this.els.bgMode){
-          this.els.bgMode.addEventListener('change', event => {
-            this.previewBackground.setMode(event.target.value);
-          });
-        }
-        if(this.els.bgImage){
-          this.els.bgImage.addEventListener('change', event => this.handleBackgroundSelection(event));
-        }
-        if(this.els.clearBg){
-          this.els.clearBg.addEventListener('click', () => this.clearBackground());
-        }
-      }
-
-      readForm(){
-        return {
-          W: +this.els.w.value || 0,
-          H: +this.els.h.value || 0,
-          platform: this.els.platform.value,
-          dpi: +this.els.dpi.value || 160,
-          scale: +this.els.scale.value || 2,
-          pTop: +this.els.pTop.value || 0,
-          pBottom: +this.els.pBottom.value || 0,
-          pSide: +this.els.pSide.value || 0,
-          mTopBottom: +this.els.mTopBottom.value || 0,
-          mSides: +this.els.mSides.value || 0
-        };
-      }
-
-      update(){
-        const formState = this.readForm();
-        const ctx = this.calc(this.applyOrientation(formState));
-        ctx.orientation = this.orientation;
-        this.previewBackground.apply();
-        this.renderKPIs(ctx);
-        this.renderScreen(ctx);
-        this.renderCalcTable(ctx);
-      }
-
-      renderKPIs(ctx){
-        this.els.kTop.textContent = ctx.top;
-        this.els.kBottom.textContent = ctx.bottom;
-        this.els.kSide.textContent = ctx.side;
-        this.els.kTarget.textContent = ctx.target;
-      }
-
-      renderScreen(ctx){
-        this.previewRenderer.render(ctx);
-      }
-
-      renderCalcTable(ctx){
-        this.els.calcTable.innerHTML = '';
-        const row = document.createElement('tr');
-        row.appendChild(this.createCell(`${ctx.W}×${ctx.H}`));
-        row.appendChild(this.createCell(ctx.top));
-        row.appendChild(this.createCell(ctx.bottom));
-        row.appendChild(this.createCell(ctx.side));
-        row.appendChild(this.createCell(`(${ctx.safe.L}, ${ctx.safe.T}, ${ctx.safe.R}, ${ctx.safe.B})`));
-        row.appendChild(this.createCell(`${ctx.target} px`));
-        row.appendChild(this.createCell(`${ctx.gap} px`));
-        row.appendChild(this.createCell(`${ctx.iTop}/${ctx.iBottom} px`));
-        row.appendChild(this.createCell(`${ctx.iSide} px`));
-        row.appendChild(this.createCell(`(${ctx.inner.L}, ${ctx.inner.T}, ${ctx.inner.R}, ${ctx.inner.B})`));
-        this.els.calcTable.appendChild(row);
-      }
-
-      applyOrientation(state){
-        if(this.orientation !== 'landscape'){
-          return {...state};
-        }
-        return {
-          ...state,
-          W: state.H,
-          H: state.W
-        };
-      }
-
-      toggleOrientation(){
-        this.orientation = this.orientation === 'portrait' ? 'landscape' : 'portrait';
-        this.updateOrientationControl();
-        this.update();
-      }
-
-      updateOrientationControl(){
-        if(!this.els.rotatePreview){
-          return;
-        }
-        const label = this.orientation === 'portrait'
-          ? 'Перемкнути на альбомну орієнтацію'
-          : 'Перемкнути на портретну орієнтацію';
-        this.els.rotatePreview.setAttribute('data-state', this.orientation);
-        this.els.rotatePreview.setAttribute('aria-label', label);
-        this.els.rotatePreview.setAttribute('title', label);
-      }
-
-      handleBackgroundSelection(event){
-        const {files} = event.target;
-        if(!files || !files[0]){
-          return;
-        }
-        const [file] = files;
-        const reader = new FileReader();
-        reader.onload = () => {
-          if(typeof reader.result === 'string'){
-            this.previewBackground.setImage(reader.result);
-            this.update();
-          }
-        };
-        reader.readAsDataURL(file);
-        if(event.target){
-          event.target.value = '';
-        }
-      }
-
-      clearBackground(){
-        this.previewBackground.clear();
-        if(this.els.bgImage){
-          this.els.bgImage.value = '';
-        }
-        this.update();
-      }
-
-      renderPresetTable(){
-        this.els.presetTable.innerHTML = '';
-        SafeBlindZonesApp.PRESETS.forEach(preset => {
-          const ctx = this.calc(preset);
-          const row = document.createElement('tr');
-          const nameCell = document.createElement('td');
-          nameCell.appendChild(this.createPresetButton(preset));
-          row.appendChild(nameCell);
-          row.appendChild(this.createCell(`${preset.W}×${preset.H}`));
-          row.appendChild(this.createCell(preset.platform === 'android' ? 'Android' : 'iOS'));
-          row.appendChild(this.createCell(preset.platform === 'android' ? `${preset.dpi} dpi` : `@${preset.scale}x`));
-          row.appendChild(this.createCell(ctx.top));
-          row.appendChild(this.createCell(ctx.bottom));
-          row.appendChild(this.createCell(ctx.side));
-          row.appendChild(this.createCell(`(${ctx.safe.L}, ${ctx.safe.T}, ${ctx.safe.R}, ${ctx.safe.B})`));
-          row.appendChild(this.createCell(`${ctx.target} px`));
-          row.appendChild(this.createCell(`${ctx.gap} px`));
-          this.els.presetTable.appendChild(row);
-        });
-      }
-
-      createCell(content){
-        const cell = document.createElement('td');
-        cell.textContent = content;
-        return cell;
-      }
-
-      createPresetButton(preset){
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'preset-link';
-        button.textContent = preset.name;
-        button.addEventListener('click', () => this.applyPreset(preset));
-        return button;
-      }
-
-      applyPreset(preset){
-        this.els.w.value = preset.W;
-        this.els.h.value = preset.H;
-        this.els.platform.value = preset.platform;
-        this.els.dpi.value = preset.dpi;
-        this.els.scale.value = preset.scale;
-        this.els.pTop.value = preset.pTop;
-        this.els.pBottom.value = preset.pBottom;
-        this.els.pSide.value = preset.pSide;
-        this.els.mTopBottom.value = preset.mTopBottom;
-        this.els.mSides.value = preset.mSides;
-        this.handlePlatformChange();
-        this.update();
-      }
-
-      applyPresetById(id){
-        const preset = SafeBlindZonesApp.PRESETS.find(item => item.id === id);
-        if(preset){
-          this.applyPreset(preset);
-        }
-      }
-
-      handlePlatformChange(){
-        if(this.els.platform.value === 'android'){
-          this.els.androidBox.style.display = 'block';
-          this.els.iosBox.style.display = 'none';
-        } else {
-          this.els.androidBox.style.display = 'none';
-          this.els.iosBox.style.display = 'block';
-        }
-      }
-    }
-
-    SafeBlindZonesApp.PRESETS = [
-      {id:'phone-default', name:'Phone 1080×2400 xxhdpi', W:1080, H:2400, platform:'android', dpi:480, scale:3, pTop:10, pBottom:12, pSide:5, mTopBottom:2, mSides:2},
-      {id:'iphone-1170', name:'iPhone 1170×2532 @3x', W:1170, H:2532, platform:'ios', dpi:0, scale:3, pTop:10, pBottom:12, pSide:5, mTopBottom:2, mSides:2},
-      {id:'phone-720', name:'Phone 720×1280 xhdpi', W:720, H:1280, platform:'android', dpi:320, scale:2, pTop:10, pBottom:12, pSide:5, mTopBottom:2, mSides:2},
-      {id:'phone-1080-2160', name:'Phone 1080×2160 xxhdpi', W:1080, H:2160, platform:'android', dpi:480, scale:3, pTop:10, pBottom:12, pSide:5, mTopBottom:2, mSides:2},
-      {id:'ipad-2048', name:'iPad 2048×1536 @2x', W:2048, H:1536, platform:'ios', dpi:0, scale:2, pTop:10, pBottom:12, pSide:5, mTopBottom:2, mSides:2},
-      {id:'tablet-default', name:'Tablet 2560×1600 xhdpi', W:2560, H:1600, platform:'android', dpi:320, scale:2, pTop:10, pBottom:12, pSide:5, mTopBottom:2, mSides:2}
-    ];
-
-    const elements = {
-      w: document.getElementById('w'),
-      h: document.getElementById('h'),
-      platform: document.getElementById('platform'),
-      dpi: document.getElementById('dpi'),
-      scale: document.getElementById('scale'),
-      pTop: document.getElementById('pTop'),
-      pBottom: document.getElementById('pBottom'),
-      pSide: document.getElementById('pSide'),
-      mTopBottom: document.getElementById('mTopBottom'),
-      mSides: document.getElementById('mSides'),
-      screen: document.getElementById('screen'),
-      rotatePreview: document.getElementById('rotatePreview'),
-      bgImage: document.getElementById('bgImage'),
-      bgMode: document.getElementById('bgMode'),
-      clearBg: document.getElementById('clearBg'),
-      kTop: document.getElementById('kTop'),
-      kBottom: document.getElementById('kBottom'),
-      kSide: document.getElementById('kSide'),
-      kTarget: document.getElementById('kTarget'),
-      calcTable: document.getElementById('calcTable').querySelector('tbody'),
-      presetTable: document.getElementById('presetTable').querySelector('tbody'),
-      apply: document.getElementById('apply'),
-      presetPhone: document.getElementById('presetPhone'),
-      presetPad: document.getElementById('presetPad'),
-      androidBox: document.getElementById('androidBox'),
-      iosBox: document.getElementById('iosBox'),
-      tooltip: document.getElementById('tooltip')
-    };
-
-    new SafeBlindZonesApp(elements);
-  </script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>
