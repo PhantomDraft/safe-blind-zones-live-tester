@@ -1,5 +1,7 @@
 # Safe Blind Zones — Live Tester
 
+<img width="2646" height="1024" alt="Safe Blind Zones — Live Tester" src="https://github.com/user-attachments/assets/ca0eea4f-1a1a-43d2-b9c7-675a326a3e74" />
+
 <details open>
 <summary>Опис (українською)</summary>
 
