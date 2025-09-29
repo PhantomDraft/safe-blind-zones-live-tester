@@ -13,7 +13,7 @@
 - Відображає шари превʼю з фоном, safe-зоною та додатковими блоками із внутрішніми мітками.
 - Експортує сформований превʼю у PNG та підтримує багатомовний (укр/англ) інтерфейс.
 
-Потрібна ще якась функція? Напишіть у [https://www.linkedin.com/in/sam-starling/](LinkedIn) в особисті — спробую додати.
+Потрібна ще якась функція? Напишіть у [LinkedIn](https://www.linkedin.com/in/sam-starling/) в особисті — спробую додати.
 
 </details>
 
@@ -28,6 +28,6 @@ The web app visualizes safe/blind zones for mobile interfaces.
 - Renders layered previews with background, safe zone, and extra blocks that show detailed inner labels.
 - Exports the composed preview to PNG and offers a bilingual (UA/EN) interface.
 
-Found this helpful but need something else? Drop me a [https://www.linkedin.com/in/sam-starling/](LinkedIn) DM; I can probably build it.
+Found this helpful but need something else? Drop me a [LinkedIn](https://www.linkedin.com/in/sam-starling/) DM; I can probably build it.
 
 </details>
