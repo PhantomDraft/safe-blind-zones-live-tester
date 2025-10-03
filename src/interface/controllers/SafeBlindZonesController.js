@@ -11,7 +11,7 @@ export class SafeBlindZonesController {
   constructor(elements, localizationRepository = new LocalizationRepository()) {
     this.elements = elements;
     this.service = new SafeBlindZonesService();
-    this.localization = new LocalizationService(localizationRepository, 'uk', ['uk', 'en']);
+    this.localization = new LocalizationService(localizationRepository, 'en', ['en', 'uk']);
     this.view = new SafeBlindZonesView(elements);
     this.background = new PreviewBackground(elements.screen);
     this.exporter = new PreviewExporter(this.background, this.view.getBlockManager(), this.localization);

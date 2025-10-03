@@ -3,8 +3,8 @@ import { LocalizationRepository } from './LocalizationRepository.js';
 export class LocalizationService {
   constructor(
     repository = new LocalizationRepository(),
-    defaultLanguage = 'uk',
-    supportedLanguages = ['uk', 'en']
+    defaultLanguage = 'en',
+    supportedLanguages = ['en', 'uk']
   ) {
     this.repository = repository;
     this.defaultLanguage = defaultLanguage;
